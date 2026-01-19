@@ -2,52 +2,40 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Coupon Redirect</title>
-    <style>
-      body {
-        font-family: sans-serif;
-        text-align: center;
-        padding: 50px;
-      }
-      h1 {
-        font-size: 2em;
-        color: #333;
-      }
-    </style>
+    <title>Checking Coupon…</title>
   </head>
   <body>
-    <h1 id="message">Checking your coupon...</h1>
+    <p>Checking your coupon…</p>
 
     <script>
-      // Get coupon code from URL query param
+      // 1️⃣ Grab coupon from URL query
       const params = new URLSearchParams(window.location.search);
       const coupon = params.get("coupon");
 
       if (!coupon) {
-        document.getElementById("message").innerText = "No coupon provided.";
+        document.body.innerText = "Invalid coupon link.";
       } else {
-        console.log("--- inside else statement");
-        // Call Zapier webhook with the coupon
+        // 2️⃣ Call your Vercel API
         fetch(
-          `https://hooks.zapier.com/hooks/catch/25627707/ug7v2cr/?coupon=${coupon}`
+          "https://coupon-checker-pi.vercel.app/api/check-coupon?coupon=" +
+            encodeURIComponent(coupon)
         )
           .then((res) => res.json())
           .then((data) => {
-            console.log({ data });
-            // Redirect based on redeemed status
-            if (data.redeemed) {
+            // 3️⃣ Redirect based on status
+            if (data.status === "success") {
               window.location.href =
-                "https://orange-way-1cb.notion.site/Sorry-this-coupon-has-already-been-redeemed-2edc0fc67b1080d6ac7cf9bcad9f5e2d"; // replace with your Notion redeemed page
+                "https://orange-way-1cb.notion.site/Enjoy-15-off-2edc0fc67b10805b88d7c505cddb3176?pvs=74";
+            } else if (data.status === "redeemed") {
+              window.location.href =
+                "https://orange-way-1cb.notion.site/Sorry-this-coupon-has-already-been-redeemed-2edc0fc67b1080d6ac7cf9bcad9f5e2d?pvs=74";
             } else {
               window.location.href =
-                "https://orange-way-1cb.notion.site/Enjoy-15-off-2edc0fc67b10805b88d7c505cddb3176"; // replace with your Notion available page
+                "https://orange-way-1cb.notion.site/Invalid-coupon-code-2edc0fc67b10801d994ee6904116596f?pvs=74";
             }
           })
-          .catch((err) => {
-            console.error(err);
-            document.getElementById("message").innerText =
-              "Something went wrong. Please try again.";
+          .catch(() => {
+            document.body.innerText = "Something went wrong. Please try again.";
           });
       }
     </script>
